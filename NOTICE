@@ -1,0 +1,45 @@
+This repository distributes model weights derived from Xiaomi-TabLDM. It is not
+affiliated with, sponsored by, or endorsed by Xiaomi Corporation.
+
+Upstream:
+
+    https://github.com/xiaomi-research/xiaomi-tabldm
+    https://huggingface.co/occams/Xiaomi-TabLDM
+
+Copyright (C) 2026 Xiaomi Corporation
+
+Xiaomi-TabLDM is licensed under the Apache License, Version 2.0. Per section
+4(b) of that license, the following changes were made to produce the artifacts
+distributed here:
+
+  - The checkpoint was converted to an OpenVINO Intermediate Representation
+    with dynamic row and feature dimensions and a fixed batch of 1.
+  - The graph was split into two stages at the row-representation tensor
+    between the column embedder and the in-context learning stage, so that the
+    many-class hierarchy can replay the same representations per node.
+  - Data-dependent control flow was rewritten as equivalent tensor operations:
+    the sparse mixture-of-experts router now computes all experts and weights
+    them with a top-k mask, the induced-self-attention skip path uses a select
+    instead of a Python branch, multi-head attention is merged into matmul plus
+    sum, and the H<=3 feature grouping is a separate conditional subgraph.
+  - Weights were compressed to int8 with NNCF (INT8_SYM, per-channel,
+    weight-only). Activations are not quantized and no calibration data was
+    used.
+  - The mixed-radix label digit views are averaged inside the first stage,
+    instead of in the surrounding Python code.
+  - Python-side batching and offload logic in the inference manager was removed.
+
+These derivatives remain under the Apache License, Version 2.0. Copyright
+notices in the upstream sources are retained. See export_meta.json for the
+exact upstream commit and tool versions.
+
+Xiaomi and Xiaomi-TabLDM are trademarks of Xiaomi Corporation.
+They are used here only to identify the upstream work.
+
+Files in this repository are OpenVINO IR, produced with OpenVINO and NNCF.
+Neither OpenVINO nor NNCF is distributed here; both are installed separately
+by the consumer and remain under their own licenses.
+
+Intel, oneAPI, and OpenVINO are trademarks of Intel Corporation
+or its affiliates. This repository is not affiliated with, sponsored by,
+or endorsed by Intel Corporation.
