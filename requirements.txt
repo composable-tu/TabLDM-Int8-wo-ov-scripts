@@ -1,0 +1,14 @@
+# Versions used to produce the published IR (CPU, Python 3.13)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.14.1+cpu
+onnx==1.23.2
+onnxscript==0.7.2
+openvino==2026.4.1
+nncf==3.4.0
+numpy==2.4.6
+scikit-learn==1.9.1
+scipy==1.18.1
+einops==0.8.2
+psutil==7.2.2
+tqdm==4.70.1
+huggingface_hub==2.3.0

@@ -1,0 +1,19 @@
+diff --git a/tabldm/_model/attention.py b/tabldm/_model/attention.py
+index d18454a..d1adaf9 100644
+--- a/tabldm/_model/attention.py
++++ b/tabldm/_model/attention.py
+@@ -461,8 +461,12 @@ def multi_head_attention_forward(
+     )  # (..., nh, tgt_len, hs)
+ 
+     # Reshape and project output
+-    attn_output = attn_output.transpose(-3, -2).contiguous().view(*batch_shape, tgt_len, embed_dim)
+-    attn_output = F.linear(attn_output, out_proj_weight, out_proj_bias)  # (batch_shape, tgt_len, E)
++    # [tabldm_dyn] head-merge without transpose+reshape (OpenVINO CPU ShuffleChannelsFusion crashes on
++    # Reshape(Transpose) with dynamic dims): out = sum_h O_h @ W_h^T + b   (mathematically identical)
++    w_heads = out_proj_weight.view(out_proj_weight.shape[0], num_heads, head_dim).permute(1, 2, 0)  # (nh, hs, E)
++    attn_output = torch.matmul(attn_output, w_heads).sum(dim=-3)  # (..., tgt_len, E)
++    if out_proj_bias is not None:
++        attn_output = attn_output + out_proj_bias
+ 
+     if need_kv and cached_kv is None:
+         return attn_output, k, v
